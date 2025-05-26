@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juego de Memoria - Cocina</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -52,22 +54,27 @@
         }
 
         .game-title {
+            font-family: 'Lobster', cursive;
             font-size: 3rem;
-            font-weight: bold;
-            color: #333;
+            font-weight: normal;
+            color: rgb(211, 87, 174);
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
+
         .game-subtitle {
-            font-size: 1.2rem;
-            color: #666;
+            font-size: 1.7rem;
+            font-family: 'Bebas Neue', sans-serif;
+            color: #b9428b;
+            font-weight: bold;
             margin-bottom: 40px;
             line-height: 1.6;
         }
 
+
         .start-btn {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(45deg, #ee6bff, #f888e9);
             color: white;
             border: none;
             padding: 20px 50px;
@@ -287,7 +294,7 @@
     <div class="game-container">
         <!-- Pantalla de inicio -->
         <div class="start-screen" id="startScreen">
-            <h1 class="game-title">🍳 Memoria Culinaria</h1>
+            <h1 class="game-title">Memoria Culinaria</h1>
             <p class="game-subtitle">
                 ¡Pon a prueba tu memoria con elementos de cocina!<br>
                 Encuentra todas las parejas para ganar
@@ -298,7 +305,7 @@
         <!-- Pantalla del juego -->
         <div class="game-screen" id="gameScreen">
             <div class="game-header">
-                <h2 style="color: #333; font-size: 1.8rem;">🍳 Memoria Culinaria</h2>
+                <h2 style="color: #da4bb6; font-size: 1.8rem; font-family: 'Lobster', cursive;">Memoria Culinaria</h2>
                 <div class="game-stats">
                     <div class="stat">Movimientos: <span id="moves">0</span></div>
                     <div class="stat">Parejas: <span id="pairs">0/6</span></div>
