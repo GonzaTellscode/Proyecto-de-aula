@@ -64,7 +64,6 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-
         .game-subtitle {
             font-size: 1.7rem;
             font-family: 'Bebas Neue', sans-serif;
@@ -73,7 +72,6 @@
             margin-bottom: 40px;
             line-height: 1.6;
         }
-
 
         .start-btn {
             background: linear-gradient(45deg, #ee6bff, #f888e9);
@@ -171,7 +169,7 @@
             cursor: pointer;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.6s;
+            transition: all 0.6s ease;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
@@ -185,9 +183,15 @@
         }
 
         .memory-card.matched {
-            opacity: 0.6;
             transform: scale(0.95);
             cursor: default;
+            background: linear-gradient(45deg, #52004e, #771958) !important;
+            box-shadow: 0 8px 25px rgba(106, 27, 154, 0.4);
+            border: 2px solid rgba(106, 27, 154, 0.6);
+        }
+
+        .memory-card.matched .card-front {
+            background: linear-gradient(45deg, #52004e, #771958) !important;
         }
 
         .card-face {
@@ -213,13 +217,35 @@
             background: white;
             transform: rotateY(180deg);
             padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
         .card-back img {
-            width: 100%;
-            height: 100%;
+            width: 90%;
+            height: 90%;
             object-fit: contain;
             border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .card-back .card-name {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #a1007e;
+            text-align: center;
+            font-family: 'Bebas Neue', sans-serif;
+            line-height: 1.2;
+        }
+
+        .card-back.text-only {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #a1007e;
+            font-family: 'Bebas Neue', sans-serif;
+            padding: 20px;
         }
 
         .win-screen {
@@ -242,7 +268,7 @@
         }
 
         .win-stats {
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             font-family: 'Bebas Neue', sans-serif;
             color: #b9428b;
             font-weight: bold;
@@ -296,6 +322,14 @@
             .start-screen, .game-screen, .win-screen {
                 padding: 30px 20px;
             }
+            
+            .card-back .card-name {
+                font-size: 0.8rem;
+            }
+            
+            .card-back.text-only {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
@@ -314,7 +348,7 @@
         <!-- Pantalla del juego -->
         <div class="game-screen" id="gameScreen">
             <div class="game-header">
-                <h2 style="color: #da4bb6; font-size: 1.8rem; font-family: 'Lobster', cursive;">Memoria Pastelera</h2>
+                <h2 style="color: #d357ae; font-size: 1.8rem; font-family: 'Lobster', cursive;">Memoria Pastelera</h2>
                 <div class="game-stats">
                     <div class="stat">Movimientos: <span id="moves">0</span></div>
                     <div class="stat">Parejas: <span id="pairs">0/6</span></div>
@@ -364,8 +398,26 @@
         }
 
         function initializeGame() {
-            // Duplicar las cartas para crear parejas
-            gameCards = [...kitchenItems, ...kitchenItems];
+            // Crear cartas: una con imagen y otra solo con nombre
+            gameCards = [];
+            
+            kitchenItems.forEach(item => {
+                // Carta con imagen
+                gameCards.push({
+                    id: item.id,
+                    type: 'image',
+                    name: item.name,
+                    image: item.image
+                });
+                
+                // Carta solo con nombre
+                gameCards.push({
+                    id: item.id,
+                    type: 'text',
+                    name: item.name,
+                    image: null
+                });
+            });
             
             // Mezclar las cartas
             gameCards = shuffleArray(gameCards);
@@ -400,14 +452,32 @@
                 const card = document.createElement('div');
                 card.className = 'memory-card';
                 card.dataset.id = item.id;
+                card.dataset.type = item.type;
                 card.dataset.index = index;
                 
-                card.innerHTML = `
-                    <div class="card-face card-front">?</div>
-                    <div class="card-face card-back">
-                        <img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;">
-                    </div>
-                `;
+                let backContent = '';
+                if (item.type === 'image') {
+                    backContent = `
+                        <img src="${item.image}" alt="${item.name}">
+                        <div class="card-name">${item.name}</div>
+                    `;
+                } else {
+                    backContent = `<div class="card-back text-only">${item.name}</div>`;
+                }
+                
+                if (item.type === 'text') {
+                    card.innerHTML = `
+                        <div class="card-face card-front">?</div>
+                        <div class="card-face card-back text-only">${item.name}</div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="card-face card-front">?</div>
+                        <div class="card-face card-back">
+                            <img src="${item.image}" alt="${item.name}">
+                        </div>
+                    `;
+                }
                 
                 card.addEventListener('click', () => flipCard(card, index));
                 board.appendChild(card);
@@ -436,8 +506,8 @@
             const secondItem = gameCards[second.index];
 
             setTimeout(() => {
-                if (firstItem.id === secondItem.id) {
-                    // Es una pareja
+                if (firstItem.id === secondItem.id && firstItem.type !== secondItem.type) {
+                    // Es una pareja válida (mismo id pero diferentes tipos: imagen-texto)
                     first.card.classList.add('matched');
                     second.card.classList.add('matched');
                     matchedPairs++;
@@ -488,7 +558,7 @@
             }
 
             document.getElementById('winStats').innerHTML = `
-                <p>¡Has completado el juego de memoria!</p>
+                <p>¡Has conectado todas las imágenes con sus nombres!</p>
                 <p><strong>Movimientos realizados:</strong> ${moves}</p>
                 <p><strong>Tiempo total:</strong> ${timeText}</p>
                 <p>¡Excelente trabajo recordando todos los elementos de cocina!</p>
