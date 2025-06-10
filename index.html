@@ -213,6 +213,10 @@
             text-shadow: 2px 2px 4px rgba(196, 5, 148, 0.3);
         }
 
+        .hidden {
+            visibility: hidden;
+        }
+
         .card-back {
             background: white;
             transform: rotateY(180deg);
@@ -224,8 +228,8 @@
         }
 
         .card-back img {
-            width: 90%;
-            height: 90%;
+            width: 95%;
+            height: 95%;
             object-fit: contain;
             border-radius: 10px;
             margin-bottom: 8px;
@@ -382,7 +386,12 @@
             { id: 5, name: 'Horno', image: 'ElementosCocina/Horno.jpg' },
             { id: 6, name: 'Rodillo', image: 'ElementosCocina/Rodillo.JPG' }
         ];
-
+    
+        // Cargar sonidos
+        const flipSound = new Audio('sounds/flip.mp3');
+        const matchSound = new Audio('sounds/match.wav');
+        const victorySound = new Audio('sounds/victory.mp3');
+    
         let gameCards = [];
         let flippedCards = [];
         let matchedPairs = 0;
@@ -390,13 +399,13 @@
         let gameStarted = false;
         let startTime;
         let timerInterval;
-
+        
         function startGame() {
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'block';
             initializeGame();
         }
-
+    
         function initializeGame() {
             // Crear cartas: una con imagen y otra solo con nombre
             gameCards = [];
@@ -434,7 +443,7 @@
             createBoard();
             startTimer();
         }
-
+    
         function shuffleArray(array) {
             const shuffled = [...array];
             for (let i = shuffled.length - 1; i > 0; i--) {
@@ -443,7 +452,7 @@
             }
             return shuffled;
         }
-
+    
         function createBoard() {
             const board = document.getElementById('memoryBoard');
             board.innerHTML = '';
@@ -454,16 +463,6 @@
                 card.dataset.id = item.id;
                 card.dataset.type = item.type;
                 card.dataset.index = index;
-                
-                let backContent = '';
-                if (item.type === 'image') {
-                    backContent = `
-                        <img src="${item.image}" alt="${item.name}">
-                        <div class="card-name">${item.name}</div>
-                    `;
-                } else {
-                    backContent = `<div class="card-back text-only">${item.name}</div>`;
-                }
                 
                 if (item.type === 'text') {
                     card.innerHTML = `
@@ -483,35 +482,46 @@
                 board.appendChild(card);
             });
         }
-
+    
         function flipCard(card, index) {
             if (!gameStarted || card.classList.contains('flipped') || 
                 card.classList.contains('matched') || flippedCards.length >= 2) {
                 return;
             }
-
+    
             card.classList.add('flipped');
             flippedCards.push({ card, index });
-
+    
+            // Sonido al voltear carta
+            flipSound.play();
+    
             if (flippedCards.length === 2) {
                 moves++;
                 updateUI();
                 checkMatch();
             }
         }
-
+    
         function checkMatch() {
             const [first, second] = flippedCards;
             const firstItem = gameCards[first.index];
             const secondItem = gameCards[second.index];
-
+    
             setTimeout(() => {
                 if (firstItem.id === secondItem.id && firstItem.type !== secondItem.type) {
-                    // Es una pareja válida (mismo id pero diferentes tipos: imagen-texto)
+                    // Pareja válida (mismo id, diferentes tipos)
                     first.card.classList.add('matched');
                     second.card.classList.add('matched');
+    
+                    // Ocultar signo de interrogación en la cara frontal
+                    first.card.querySelector('.card-front').classList.add('hidden');
+                    second.card.querySelector('.card-front').classList.add('hidden');
+    
                     matchedPairs++;
-                    
+    
+                    // Sonido de match
+                    matchSound.play();
+    
                     if (matchedPairs === kitchenItems.length) {
                         gameWon();
                     }
@@ -519,18 +529,22 @@
                     // No es pareja, voltear de vuelta
                     first.card.classList.remove('flipped');
                     second.card.classList.remove('flipped');
+    
+                    // Restaurar signo de interrogación
+                    first.card.querySelector('.card-front').classList.remove('hidden');
+                    second.card.querySelector('.card-front').classList.remove('hidden');
                 }
-                
+    
                 flippedCards = [];
                 updateUI();
             }, 1000);
         }
-
+    
         function updateUI() {
             document.getElementById('moves').textContent = moves;
             document.getElementById('pairs').textContent = `${matchedPairs}/${kitchenItems.length}`;
         }
-
+    
         function startTimer() {
             timerInterval = setInterval(() => {
                 if (gameStarted) {
@@ -541,10 +555,13 @@
                 }
             }, 1000);
         }
-
+    
         function gameWon() {
             gameStarted = false;
             clearInterval(timerInterval);
+    
+            // Sonido de victoria
+            victorySound.play();
             
             const totalTime = Math.floor((Date.now() - startTime) / 1000);
             const minutes = Math.floor(totalTime / 60);
@@ -556,29 +573,29 @@
             } else {
                 timeText = `${seconds} segundo${seconds !== 1 ? 's' : ''}`;
             }
-
+    
             document.getElementById('winStats').innerHTML = `
                 <p>¡Has conectado todas las imágenes con sus nombres!</p>
                 <p><strong>Movimientos realizados:</strong> ${moves}</p>
                 <p><strong>Tiempo total:</strong> ${timeText}</p>
                 <p>¡Excelente trabajo recordando todos los elementos de cocina!</p>
             `;
-
+    
             setTimeout(() => {
                 document.getElementById('gameScreen').style.display = 'none';
                 document.getElementById('winScreen').style.display = 'block';
             }, 1500);
         }
-
+    
         function restartGame() {
             clearInterval(timerInterval);
             initializeGame();
         }
-
+    
         function playAgain() {
             document.getElementById('winScreen').style.display = 'none';
             document.getElementById('startScreen').style.display = 'block';
         }
-    </script>
+    </script>    
 </body>
 </html>
